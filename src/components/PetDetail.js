@@ -1,7 +1,33 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import petsData from "../petsData";
+import { useParams } from "react-router-dom";
+import { getPetById, updatePet } from "../api/pets";
+
 const PetDetail = () => {
-  const pet = petsData[0];
+  const { petId } = useParams();
+  const [petId1, setpetId] = useState([]);
+  const [name, setName] = useState("");
+  const [type, setType] = useState("");
+  const [image, setImage] = useState("");
+  const [adopted, setAdopted] = useState("");
+
+  const pet = petsData.find((pet) => {
+    if (pet.id == petId) {
+      return pet;
+    } else {
+      return <h1>There is no pet with the id: ${petId}</h1>;
+    }
+  });
+
+  const callPetById = async () => {
+    const res = await getPetById();
+    setpetId(res);
+  };
+
+  useEffect(() => {
+    callPetById();
+  });
+
   return (
     <div className="bg-[#F9E3BE] w-screen h-[100vh] flex justify-center items-center">
       <div className="border border-black rounded-md w-[70%] h-[70%] overflow-hidden flex flex-col md:flex-row p-5">
