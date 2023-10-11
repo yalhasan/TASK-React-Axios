@@ -25,7 +25,7 @@ const updatePet = async (id, name, type, image, adopted) => {
     name: name,
     type: type,
     image: image,
-    adopted: adopted,
+    adopted: !adopted,
   });
   return res.data;
 };

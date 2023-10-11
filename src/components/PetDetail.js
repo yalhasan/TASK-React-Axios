@@ -1,33 +1,36 @@
 import React, { useEffect, useState } from "react";
-import petsData from "../petsData";
-import { useParams } from "react-router-dom";
-import { getPetById, updatePet } from "../api/pets";
+
+import { Navigate, useParams } from "react-router-dom";
+import { deletePet, getPetById, updatePet } from "../api/pets";
+import NotFound from "./NotFound";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 const PetDetail = () => {
-  const { petId } = useParams();
-  const [petId1, setpetId] = useState([]);
-  const [name, setName] = useState("");
-  const [type, setType] = useState("");
-  const [image, setImage] = useState("");
-  const [adopted, setAdopted] = useState("");
+  const { id } = useParams();
+  const queryClient = useQueryClient();
 
-  const pet = petsData.find((pet) => {
-    if (pet.id == petId) {
-      return pet;
-    } else {
-      return <h1>There is no pet with the id: ${petId}</h1>;
-    }
+  const { data: pet, isLoading } = useQuery({
+    queryKey: ["pet", id],
+    queryFn: () => getPetById(id),
   });
 
-  const callPetById = async () => {
-    const res = await getPetById();
-    setpetId(res);
-  };
-
-  useEffect(() => {
-    callPetById();
+  const { mutate: update } = useMutation({
+    mutationKey: ["updatePet"],
+    mutationFn: () => updatePet(id, pet.name, pet.type, pet.image, pet.adopted),
+    onSuccess: () => {
+      queryClient.invalidateQueries(["pet", id]);
+    },
   });
 
+  const { mutate: deleteThePet } = useMutation({
+    mutationKey: ["deletePet"],
+    mutationFn: () => deletePet(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries(["pet", id]);
+    },
+  });
+
+  if (isLoading) return <h1>Loading...</h1>;
   return (
     <div className="bg-[#F9E3BE] w-screen h-[100vh] flex justify-center items-center">
       <div className="border border-black rounded-md w-[70%] h-[70%] overflow-hidden flex flex-col md:flex-row p-5">
@@ -43,11 +46,17 @@ const PetDetail = () => {
           <h1>Type: {pet.type}</h1>
           <h1>adopted: {pet.adopted}</h1>
 
-          <button className="w-[70px] border border-black rounded-md  hover:bg-green-400 mb-5">
+          <button
+            onClick={() => update()}
+            className="w-[70px] border border-black rounded-md  hover:bg-green-400 mb-5"
+          >
             Adobt
           </button>
 
-          <button className="w-[70px] border border-black rounded-md  hover:bg-red-400">
+          <button
+            onClick={() => deleteThePet()}
+            className="w-[70px] border border-black rounded-md  hover:bg-red-400"
+          >
             Delete
           </button>
         </div>
